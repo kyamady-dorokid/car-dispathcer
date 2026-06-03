@@ -32,10 +32,24 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
 
+# customer-provided data (NDA - do not commit)
+/data/*
+!/data/.gitkeep
+
+# local DB files
+*.db
+*.db-journal
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/lib/generated/prisma
+
+# Claude Code local settings (machine-specific, do not commit)
+.claude/settings.local.json

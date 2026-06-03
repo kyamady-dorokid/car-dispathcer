@@ -1,0 +1,99 @@
+// 配車システム モック - DBスキーマ
+// 詳細仕様: docs/04-data-model.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 顧客 = 回収先事業場
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+// 車両
+model Vehicle {
+  id            Int      @id @default(autoincrement())
+  plateNumber   String   @unique
+  type          String   // "4t" | "10t" | "trailer" | "2t"
+  capacityKg    Int
+  status        String   @default("active") // "active" | "maintenance"
+  baseLat       Float
+  baseLng       Float
+  createdAt     DateTime @default(now())
+  dispatches    DispatchRecord[]
+}
+
+// ドライバー
+model Driver {
+  id              Int      @id @default(autoincrement())
+  name            String
+  experienceYears Int
+  licenses        String   // カンマ区切り (例: "中型,大型,牽引,危険物")
+  homeBase        String   // 拠点エリア名
+  homeLat         Float
+  homeLng         Float
+  createdAt       DateTime @default(now())
+  dispatches      DispatchRecord[]
+}
+
+// 案件
+model Order {
+  id                   Int      @id @default(autoincrement())
+  customerId           Int
+  originAddress        String
+  originLat            Float
+  originLng            Float
+  destAddress          String
+  destLat              Float
+  destLng              Float
+  cargo                String   // 品目
+  requiredVehicleType  String   // "4t" | "10t" | "trailer" | "2t"
+  requiredLicenses     String   // カンマ区切り (例: "中型,危険物")
+  requestedAt          DateTime
+  status               String   @default("pending") // "pending" | "assigned" | "completed" | "cancelled"
+  createdAt            DateTime @default(now())
+  customer             Customer @relation(fields: [customerId], references: [id])
+  dispatch             DispatchRecord?
+}
+
+// 配車実績 (過去ログ + 現在の割当)
+model DispatchRecord {
+  id            Int       @id @default(autoincrement())
+  orderId       Int       @unique
+  driverId      Int
+  vehicleId     Int
+  dispatchedAt  DateTime
+  completedAt   DateTime?
+  status        String    @default("in_progress") // "in_progress" | "completed" | "cancelled"
+  order         Order     @relation(fields: [orderId], references: [id])
+  driver        Driver    @relation(fields: [driverId], references: [id])
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id])
+  rating        Rating?
+
+  @@index([driverId])
+  @@index([vehicleId])
+  @@index([dispatchedAt])
+}
+
+// 評価 (顧客→ドライバー)
+model Rating {
+  id                 Int            @id @default(autoincrement())
+  dispatchRecordId   Int            @unique
+  score              Int            // 1-5
+  comment            String?
+  createdAt          DateTime       @default(now())
+  dispatchRecord     DispatchRecord @relation(fields: [dispatchRecordId], references: [id])
+
+  @@index([score])
+}

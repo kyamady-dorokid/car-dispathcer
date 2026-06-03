@@ -1,0 +1,34 @@
+# 配車システム モック - 開発用 docker-compose
+# 起動: docker compose up
+# 初回は npm ci + db push + seed が走るため数分かかります
+#
+# Volume 方針:
+#   - ソースは bind mount でホスト ↔ コンテナ同期 (HMR有効)
+#   - node_modules と .next は名前付きボリュームでホストOS依存を回避
+#   - dev.db はホストに同期される (バックアップ・確認が容易)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: car_dispatcher_app
+    container_name: car_dispatcher_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - next_cache:/app/.next
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=file:./dev.db
+      # WSL / Docker Desktop でファイル変更検知が効かないことがあるので polling
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+  next_cache:

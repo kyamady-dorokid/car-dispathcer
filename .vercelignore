@@ -1,0 +1,16 @@
+# Vercel デプロイ時に含めないもの
+node_modules
+.next
+out
+
+# 顧客データ (NDA - 絶対にアップロードしない)
+data/*
+!data/.gitkeep
+
+# ローカル SQLite (Vercel では Neon Postgres を使うため不要)
+dev.db
+dev.db-journal
+
+# ログ・OS
+*.log
+.DS_Store

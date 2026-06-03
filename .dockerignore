@@ -1,0 +1,14 @@
+# build context から除外 (bind mount される compose 経由でもイメージサイズに寄与)
+node_modules
+.next
+out
+.git
+.DS_Store
+*.log
+npm-debug.log*
+.env*
+data/*
+!data/.gitkeep
+dev.db
+dev.db-journal
+lib/generated
